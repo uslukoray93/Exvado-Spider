@@ -10,50 +10,75 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
+import { Separator } from "@/components/ui/separator"
+import { cn } from "@/lib/utils"
 import {
   ArrowLeft,
-  Save,
-  X,
-  Upload,
-  Image as ImageIcon,
-  Sparkles,
   ChevronRight,
+  Upload,
   Plus,
   Trash2,
-  Calendar
+  Edit,
+  Sparkles,
+  Calendar,
+  Clock
 } from "lucide-react"
-import { Switch } from "@/components/ui/switch"
 
 export default function ProductEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
 
+  const productImages = [
+    "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1504826260979-242151ee45b7?w=400&h=400&fit=crop"
+  ]
+
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+
   const [product, setProduct] = useState({
-    id: id,
-    name: "Ergonomik Ofis Sandalyesi Ayarlanabilir Kol Dayama ve Bel Desteği ile Premium Kalite",
+    name: "Nortek DMK 706 Tirifaze Dik Milli Kademeli Pompa / 2 Hp / 11/4\"-1",
     supplier: "Barbaros",
-    sku: "EOS-005",
-    barcode: "8690123456793",
-    desi: "11",
+    brand: "Nortek",
+    sku: "372051712851",
+    barcode: "8690123456789",
+    desi: "25 - 288.00t",
     kdv: "20",
     isActive: true,
-    category: ["Mobilya", "Ofis", "Sandalyeler"],
-    supplierCost: 20000,
-    cashDiscountCost: 19500,
-    shippingCost: 23750,
-    salesPrice: 24250,
+    eCommerce: true,
+    marketplace: false,
+    category: ["Bahçe Makineleri", "Su Motoru ve Pompalar", "Elektrikli Su Motoru"],
+    supplierCost: 7911.25,
+    cashDiscountCost: 10888.74,
+    campaignDiscountCost: 10344.30, // Nakit iskontolu maliyetten %5 düşük (10888.74 * 0.95 = 10,344.30)
+    noCampaignCost: 10888.74, // Kampanya yoksa nakit iskontolu maliyet kullanılır
+    shippingCost: 12796.87,
+    salesPrice: 13500.00,
+    bbbSalesPrice: 13200.00,
+    sopvoCost: 13114.90,
+    hepsiburadaCost: 13008.89,
+    n11Cost: 12796.87,
+    trendyolCost: 12690.87,
     specialDiscount: {
       enabled: false,
       percentage: 0,
       startDate: "",
       endDate: ""
     },
-    bbbSalesPrice: 24250,
     previousCampaigns: [
-      { date: "2024-12-15", discount: "15%", price: 20612 },
-      { date: "2024-11-28", discount: "10%", price: 21825 }
+      { date: "15.01.2024 - 31.01.2024", discount: "%15", price: 11475.00, status: "active" },
+      { date: "01.12.2023 - 31.12.2023", discount: "%10", price: 9799.86, status: "expired" }
     ],
+    stock: {
+      supplier: 15,
+      our: 0,
+      bolbolbul: 15,
+      sopvo: 15
+    },
+    metaTitle: "Yüksek Performanslı Su Motoru: Nortek DMK 706",
+    metaDescription: "Nortek DMK 706 Tirifaze Dik Milli Kademeli Pompa ile suyunuzu kolayca pompalayın. Güçlü 2 Hp motoru ve 11/4\"-1 çıkışı ile verimli kullanım sağlar.",
+    description: "Nortek DMK 706 Tirifaze Dik Milli Kademeli Pompa, 2 Hp (1.5 kW) gücünde ve tirifaze elektrikle çalışan yüksek performanslı bir su pompasıdır. Altı kademeli tasarımı sayesinde farklı yüksekliklerde etkili bir şekilde su transferi yapabilen bu pompa, özellikle endüstriyel uygulamalar ve büyük ölçekli sulama projeleri için idealdir. 11/4\" giriş ve 1\" çıkış çapı ile geniş bir su bağlantı kapasitesine sahiptir.",
     technicalSpecs: [
       { key: "Güç", value: "2 Hp (1.5 kW)" },
       { key: "Kademe Sayısı", value: "6" },
@@ -62,652 +87,697 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
       { key: "Voltaj", value: "380 V" },
       { key: "Ürün Bilgisi", value: "Dik Milli Kademeli Pompa" }
     ],
-    metaTitle: "Ergonomik Ofis Sandalyesi - Premium Kalite",
-    metaDescription: "Ayarlanabilir kol dayama ve bel desteği ile maksimum konfor sağlayan ergonomik ofis sandalyesi.",
-    description: "Premium kalitede ergonomik ofis sandalyesi. Ayarlanabilir kol dayama, bel desteği ve yükseklik ayarı ile maksimum konfor sağlar.",
-    images: [
-      "https://images.unsplash.com/photo-1505843513577-22bb7d21e455?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=400&h=400&fit=crop"
-    ]
+    images: []
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log("Updated product:", product)
-    router.push("/products")
+  const generateWithAI = (field: string, wordCount?: number) => {
+    console.log(`AI generating ${field} with ${wordCount || 'default'} words`)
+    // AI generation will be implemented
   }
 
   const removeTechnicalSpec = (index: number) => {
-    setProduct({
-      ...product,
-      technicalSpecs: product.technicalSpecs.filter((_, i) => i !== index)
-    })
+    const newSpecs = product.technicalSpecs.filter((_, i) => i !== index)
+    setProduct({ ...product, technicalSpecs: newSpecs })
   }
 
-  const removeImage = (index: number) => {
-    setProduct({
-      ...product,
-      images: product.images.filter((_, i) => i !== index)
-    })
+  const handleSave = () => {
+    console.log("Saving product:", product)
   }
-
-  const generateWithAI = (field: string, wordCount?: number) => {
-    console.log(`Generating ${field} with AI${wordCount ? ` (${wordCount} words)` : ''}`)
-  }
-
-  const cardClass = "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg"
-  const headerClass = "px-6 py-4 border-b border-gray-200 dark:border-gray-700"
-  const inputClass = "h-10 rounded-md border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-  const labelClass = "text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 block"
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {/* Clean Header */}
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+        {/* Header */}
+        <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
           <div className="max-w-7xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <Link href="/products">
-                  <Button variant="ghost" size="icon" className="h-9 w-9">
-                    <ArrowLeft className="h-4 w-4" />
+                  <Button variant="ghost" size="icon" className="rounded-lg">
+                    <ArrowLeft className="h-5 w-5" />
                   </Button>
                 </Link>
                 <div>
-                  <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-1">
+                    <span>Dovizsheet</span>
+                    <ChevronRight className="h-3 w-3" />
+                    <span>DMK 706 T</span>
+                  </div>
+                  <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
                     Ürün Düzenle
                   </h1>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                    #{id} • {product.sku}
-                  </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Link href="/products">
-                  <Button variant="outline" size="sm">
-                    İptal
-                  </Button>
-                </Link>
-                <Button onClick={handleSubmit} size="sm" className="bg-blue-600 hover:bg-blue-700">
-                  <Save className="h-4 w-4 mr-2" />
-                  Kaydet
-                </Button>
-              </div>
+              <Button
+                onClick={handleSave}
+                className="bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-700 hover:via-violet-700 hover:to-indigo-700 text-white rounded-lg px-6"
+              >
+                Kaydet
+              </Button>
             </div>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="max-w-7xl mx-auto px-6 py-6 space-y-5">
-            {/* Temel Bilgiler */}
-            <Card className={cardClass}>
-              <CardHeader className={headerClass}>
-                <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
-                  Temel Bilgiler
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div>
-                  <Label htmlFor="name" className={labelClass}>Ürün Adı *</Label>
-                  <Input
-                    id="name"
-                    value={product.name}
-                    onChange={(e) => setProduct({ ...product, name: e.target.value })}
-                    placeholder="Ürün adını girin"
-                    required
-                    className={inputClass}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-5">
-                  <div>
-                    <Label htmlFor="supplier" className={labelClass}>Tedarikçi *</Label>
-                    <Select value={product.supplier} onValueChange={(value) => setProduct({ ...product, supplier: value })}>
-                      <SelectTrigger className={inputClass}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Ital">İtal</SelectItem>
-                        <SelectItem value="Mapaş">Mapaş</SelectItem>
-                        <SelectItem value="Barbaros">Barbaros Motor</SelectItem>
-                        <SelectItem value="ABM">ABM Hırdavat</SelectItem>
-                        <SelectItem value="DövizSheet">DövizSheet</SelectItem>
-                        <SelectItem value="AkınZiraat">Akın Ziraat</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-end">
-                    <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 w-full">
-                      <Switch
-                        checked={product.isActive}
-                        onCheckedChange={(checked) => setProduct({ ...product, isActive: checked })}
-                        id="isActive"
-                      />
-                      <Label htmlFor="isActive" className="cursor-pointer mb-0">
-                        {product.isActive ? (
-                          <Badge className="bg-gradient-to-r from-green-500 to-emerald-500">Envanter Aktif</Badge>
-                        ) : (
-                          <Badge variant="secondary">Envanter Pasif</Badge>
-                        )}
-                      </Label>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-4 gap-4">
-                  <div className="col-span-2">
-                    <Label htmlFor="sku" className={labelClass}>Stok Kodu *</Label>
-                    <Input
-                      id="sku"
-                      value={product.sku}
-                      onChange={(e) => setProduct({ ...product, sku: e.target.value })}
-                      placeholder="SKU"
-                      required
-                      className={inputClass}
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-6 py-8 space-y-12">
+          {/* Ürün Bilgileri ve Görsel */}
+          <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Sol - Ürün Görseli */}
+                <div className="space-y-4">
+                  <div className="aspect-square bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-lg flex flex-col items-center justify-center">
+                    <img
+                      src={productImages[selectedImageIndex]}
+                      alt="Product"
+                      className="w-full h-full object-cover rounded-lg"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="desi" className={labelClass}>Desi</Label>
-                    <Select value={product.desi} onValueChange={(value) => setProduct({ ...product, desi: value })}>
-                      <SelectTrigger className={inputClass}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="5">5</SelectItem>
-                        <SelectItem value="7">7</SelectItem>
-                        <SelectItem value="11">11</SelectItem>
-                        <SelectItem value="15">15</SelectItem>
-                        <SelectItem value="20">20</SelectItem>
-                        <SelectItem value="30">30</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="kdv" className={labelClass}>KDV %</Label>
-                    <Select value={product.kdv} onValueChange={(value) => setProduct({ ...product, kdv: value })}>
-                      <SelectTrigger className={inputClass}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">%1</SelectItem>
-                        <SelectItem value="10">%10</SelectItem>
-                        <SelectItem value="20">%20</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="barcode" className={labelClass}>Barkod Kodu</Label>
-                  <Input
-                    id="barcode"
-                    value={product.barcode}
-                    onChange={(e) => setProduct({ ...product, barcode: e.target.value })}
-                    placeholder="8690123456789"
-                    className={inputClass}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Kategori */}
-            <Card className={cardClass}>
-              <CardHeader className={headerClass}>
-                <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
-                  Kategori
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {product.category.map((cat, index) => (
-                    <div key={index} className="flex items-center">
-                      {index > 0 && <ChevronRight className="h-4 w-4 text-gray-400 mx-1" />}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        type="button"
+                  <div className="flex gap-2">
+                    {productImages.map((image, index) => (
+                      <div
+                        key={index}
+                        onClick={() => setSelectedImageIndex(index)}
+                        className={`w-16 h-16 border-2 rounded-lg overflow-hidden cursor-pointer transition-colors ${
+                          selectedImageIndex === index
+                            ? 'border-blue-500'
+                            : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'
+                        }`}
                       >
-                        {cat}
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    type="button"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Fiyatlandırma */}
-            <Card className={cardClass}>
-              <CardHeader className={headerClass}>
-                <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
-                  Fiyatlandırma
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-5 p-6">
-                <div className="grid grid-cols-3 gap-5">
-                  <div>
-                    <Label htmlFor="supplierCost" className={labelClass}>Tedarikçi Maliyet</Label>
-                    <Input
-                      id="supplierCost"
-                      type="number"
-                      value={product.supplierCost}
-                      onChange={(e) => setProduct({ ...product, supplierCost: parseInt(e.target.value) })}
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="cashDiscountCost" className={labelClass}>Nakit İskontolu Maliyet</Label>
-                    <Input
-                      id="cashDiscountCost"
-                      type="number"
-                      value={product.cashDiscountCost}
-                      onChange={(e) => setProduct({ ...product, cashDiscountCost: parseInt(e.target.value) })}
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="shippingCost" className={labelClass}>Kargo + Nakit İskontolu</Label>
-                    <Input
-                      id="shippingCost"
-                      type="number"
-                      value={product.shippingCost}
-                      onChange={(e) => setProduct({ ...product, shippingCost: parseInt(e.target.value) })}
-                      className={inputClass}
-                    />
+                        <img src={image} alt={`Thumb ${index + 1}`} className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                    <button className="w-16 h-16 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg flex items-center justify-center hover:border-slate-400 dark:hover:border-slate-600 transition-colors">
+                      <Plus className="h-5 w-5 text-slate-400" />
+                    </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-5">
+                {/* Sağ - Form Alanları */}
+                <div className="lg:col-span-2 space-y-4">
                   <div>
-                    <Label htmlFor="salesPrice" className={labelClass}>Satış Fiyatı</Label>
-                    <Input
-                      id="salesPrice"
-                      type="number"
-                      value={product.salesPrice}
-                      onChange={(e) => setProduct({ ...product, salesPrice: parseInt(e.target.value) })}
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="bbbSalesPrice" className={labelClass}>BBB Satış Fiyatı</Label>
-                    <Input
-                      id="bbbSalesPrice"
-                      type="number"
-                      value={product.bbbSalesPrice}
-                      onChange={(e) => setProduct({ ...product, bbbSalesPrice: parseInt(e.target.value) })}
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
-
-                {/* Özel Kampanya */}
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <Label className="text-base font-semibold">Özel Kampanya İndirimi</Label>
-                    <Switch
-                      checked={product.specialDiscount.enabled}
-                      onCheckedChange={(checked) => setProduct({
-                        ...product,
-                        specialDiscount: { ...product.specialDiscount, enabled: checked }
-                      })}
-                    />
-                  </div>
-                  {product.specialDiscount.enabled && (
-                    <div className="grid grid-cols-3 gap-5 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-2xl border border-amber-200 dark:border-amber-800">
-                      <div>
-                        <Label htmlFor="discountPercentage" className="text-sm">İndirim %</Label>
-                        <Input
-                          id="discountPercentage"
-                          type="number"
-                          value={product.specialDiscount.percentage}
-                          onChange={(e) => setProduct({
-                            ...product,
-                            specialDiscount: { ...product.specialDiscount, percentage: parseInt(e.target.value) }
-                          })}
-                          placeholder="0"
-                          className="mt-1.5 h-10 rounded-lg"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="startDate" className="text-sm flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          Başlangıç
-                        </Label>
-                        <Input
-                          id="startDate"
-                          type="date"
-                          value={product.specialDiscount.startDate}
-                          onChange={(e) => setProduct({
-                            ...product,
-                            specialDiscount: { ...product.specialDiscount, startDate: e.target.value }
-                          })}
-                          className="mt-1.5 h-10 rounded-lg"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="endDate" className="text-sm flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          Bitiş
-                        </Label>
-                        <Input
-                          id="endDate"
-                          type="date"
-                          value={product.specialDiscount.endDate}
-                          onChange={(e) => setProduct({
-                            ...product,
-                            specialDiscount: { ...product.specialDiscount, endDate: e.target.value }
-                          })}
-                          className="mt-1.5 h-10 rounded-lg"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Kar Göstergesi */}
-                {product.bbbSalesPrice && product.shippingCost && (
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border border-green-200 dark:border-green-800 rounded-2xl p-5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Tahmini Kar:</span>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                          ₺{(product.bbbSalesPrice - product.shippingCost).toLocaleString('tr-TR')}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          %{(((product.bbbSalesPrice - product.shippingCost) / product.shippingCost) * 100).toFixed(1)} kar marjı
-                        </p>
-                      </div>
+                    <Label className="text-xs text-slate-500 dark:text-slate-400 mb-1.5 block">Ürün Adı</Label>
+                    <div className="relative">
+                      <Input
+                        value={product.name}
+                        onChange={(e) => setProduct({ ...product, name: e.target.value })}
+                        className="pr-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg text-sm"
+                      />
+                      <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded">
+                        <Edit className="h-4 w-4 text-slate-400" />
+                      </button>
                     </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
 
-            {/* Geçmiş Kampanyalar */}
-            <Card className={cardClass}>
-              <CardHeader className={headerClass}>
-                <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
-                  Son Uygulanan Kampanyalar
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-3">
-                  {product.previousCampaigns.map((campaign, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800 dark:to-slate-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all">
-                      <div className="flex items-center gap-3">
-                        <Calendar className="h-5 w-5 text-gray-400" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">{campaign.date}</span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <Badge className="bg-gradient-to-r from-orange-500 to-red-500">{campaign.discount}</Badge>
-                        <span className="text-sm font-semibold">₺{campaign.price.toLocaleString('tr-TR')}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Teknik Özellikler */}
-            <Card className={cardClass}>
-              <CardHeader className={headerClass}>
-                <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
-                  Teknik Özellikler
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-2 gap-8">
-                  {/* Sol Panel */}
-                  <div className="space-y-4 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-gray-800/30 dark:to-gray-700/30 p-6 rounded-2xl border border-blue-100 dark:border-gray-700">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className={labelClass}>Özellik Grubu Seçin</Label>
-                      <Select defaultValue="">
-                        <SelectTrigger className={inputClass}>
+                      <Label className="text-xs text-slate-500 dark:text-slate-400 mb-1.5 block">Tedarikçi</Label>
+                      <Select value={product.supplier} disabled>
+                        <SelectTrigger className="bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg cursor-not-allowed opacity-60">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Barbaros">Barbaros</SelectItem>
+                          <SelectItem value="Tedarikçi 2">Tedarikçi 2</SelectItem>
+                          <SelectItem value="Tedarikçi 3">Tedarikçi 3</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-slate-500 dark:text-slate-400 mb-1.5 block">Marka</Label>
+                      <Input
+                        value={product.brand}
+                        disabled
+                        className="bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg cursor-not-allowed opacity-60"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-xs text-slate-500 dark:text-slate-400 mb-1.5 block">Stok Kodu (SKU)</Label>
+                      <Input
+                        value={product.sku}
+                        disabled
+                        className="bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg cursor-not-allowed opacity-60"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-slate-500 dark:text-slate-400 mb-1.5 block">Barkod Kodu</Label>
+                      <Input
+                        value={product.barcode}
+                        disabled
+                        className="bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg cursor-not-allowed opacity-60"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-[1.35fr_0.825fr_0.825fr] gap-4">
+                    <div>
+                      <Label className="text-xs text-slate-500 dark:text-slate-400 mb-1.5 block">Desi</Label>
+                      <Select value={product.desi} onValueChange={(value) => setProduct({ ...product, desi: value })}>
+                        <SelectTrigger className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="25 - 288.00t">25 - 288.00t</SelectItem>
+                          <SelectItem value="1">1</SelectItem>
+                          <SelectItem value="2">2</SelectItem>
+                          <SelectItem value="3">3</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-slate-500 dark:text-slate-400 mb-1.5 block">KDV</Label>
+                      <Select value={product.kdv} onValueChange={(value) => setProduct({ ...product, kdv: value })}>
+                        <SelectTrigger className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">%1</SelectItem>
+                          <SelectItem value="10">%10</SelectItem>
+                          <SelectItem value="20">%20</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-end">
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={product.isActive}
+                          onCheckedChange={(checked) => setProduct({ ...product, isActive: checked })}
+                          className="scale-125 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-purple-600 data-[state=checked]:via-violet-600 data-[state=checked]:to-indigo-600"
+                        />
+                        <Label className="text-xs">Envanter Durumu</Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator className="my-6" />
+
+                  {/* Kategori Seçimi */}
+                  <div className="mt-5">
+                    <Label className="text-xs text-slate-500 dark:text-slate-400 mb-1.5 block">Kategori Seçimi</Label>
+                    <div className="grid grid-cols-3 gap-4">
+                      <Select value={product.category[0]} onValueChange={(value) => setProduct({ ...product, category: [value] })}>
+                        <SelectTrigger className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg">
+                          <SelectValue placeholder="Ana Kategori" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Bahçe Makineleri">Bahçe Makineleri</SelectItem>
+                          <SelectItem value="Elektronik">Elektronik</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={product.category[1]} onValueChange={(value) => setProduct({ ...product, category: [product.category[0], value] })}>
+                        <SelectTrigger className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg">
+                          <SelectValue placeholder="Alt Kategori" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Su Motoru ve Pompalar">Su Motoru ve Pompalar</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={product.category[2]} onValueChange={(value) => setProduct({ ...product, category: [...product.category.slice(0, 2), value] })}>
+                        <SelectTrigger className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg">
+                          <SelectValue placeholder="Detay Kategori" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Elektrikli Su Motoru">Elektrikli Su Motoru</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Teknik Özellikler - Tam Genişlik */}
+          <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <CardContent className="p-6">
+              <div className="space-y-6">
+                <div className="grid grid-cols-[1fr_2fr] gap-6">
+                  {/* Sol - Form */}
+                  <div className="space-y-3">
+                    <div className="w-full">
+                      <Label className="text-xs text-slate-500 dark:text-slate-400 mb-1.5 block">Özellik Grubu Seçin</Label>
+                      <Select>
+                        <SelectTrigger className="w-full bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg h-9">
                           <SelectValue placeholder="Özellik Grubu Seçiniz" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="motor">Motor Özellikleri</SelectItem>
+                          <SelectItem value="genel">Genel Özellikler</SelectItem>
+                          <SelectItem value="teknik">Teknik Detaylar</SelectItem>
                           <SelectItem value="elektrik">Elektrik Özellikleri</SelectItem>
-                          <SelectItem value="mekanik">Mekanik Özellikler</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full justify-start rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0 hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/20"
+                    <button
+                      className="w-full min-h-[36px] max-h-[36px] h-9 px-3 inline-flex items-center justify-center text-sm font-medium rounded-md border border-green-200/40 dark:border-green-800/40 bg-gradient-to-r from-green-50/40 to-emerald-50/40 dark:from-green-950/40 dark:to-emerald-950/40 hover:from-green-100/50 hover:to-emerald-100/50 dark:hover:from-green-900/50 dark:hover:to-emerald-900/50 hover:border-green-300/50 dark:hover:border-green-700/50 text-green-700 dark:text-green-400 transition-colors leading-none"
                     >
-                      <Plus className="h-4 w-4 mr-2" />
                       Grup Oluştur
-                    </Button>
+                    </button>
 
-                    <div>
-                      <Select defaultValue="">
-                        <SelectTrigger className={inputClass}>
+                    <Separator className="my-4" />
+
+                    <div className="w-full">
+                      <Label className="text-xs text-slate-500 dark:text-slate-400 mb-1.5 block">Özellik Grubu Seçiniz</Label>
+                      <Select>
+                        <SelectTrigger className="w-full bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg h-9">
                           <SelectValue placeholder="Özellik Grubu Seçiniz" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="guc">Güç</SelectItem>
-                          <SelectItem value="kademe">Kademe Sayısı</SelectItem>
-                          <SelectItem value="cap">Giriş - Çıkış Çapı</SelectItem>
-                          <SelectItem value="debi">Debi</SelectItem>
-                          <SelectItem value="voltaj">Voltaj</SelectItem>
+                          <SelectItem value="genel">Genel Özellikler</SelectItem>
+                          <SelectItem value="teknik">Teknik Detaylar</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full justify-start rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700"
+                    <button
+                      className="w-full min-h-[36px] max-h-[36px] h-9 px-3 inline-flex items-center justify-center text-sm font-medium rounded-md border border-orange-200/40 dark:border-orange-800/40 bg-gradient-to-r from-orange-50/40 to-amber-50/40 dark:from-orange-950/40 dark:to-amber-950/40 hover:from-orange-100/50 hover:to-amber-100/50 dark:hover:from-orange-900/50 dark:hover:to-amber-900/50 hover:border-orange-300/50 dark:hover:border-orange-700/50 text-orange-700 dark:text-orange-400 transition-colors leading-none"
                     >
                       Özellik Oluştur
-                    </Button>
+                    </button>
 
-                    <Button
-                      type="button"
-                      className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/20"
-                    >
-                      Ekle
-                    </Button>
+                    <div className="pt-8">
+                      <Button
+                        size="sm"
+                        className="w-3/4 mx-auto flex items-center gap-2 h-9 bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-700 hover:via-violet-700 hover:to-indigo-700 text-white shadow-sm hover:shadow-md transition-all"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Ekle
+                      </Button>
+                    </div>
                   </div>
 
-                  {/* Sağ Panel */}
-                  <div>
-                    <Label className={labelClass}>Seçilen</Label>
-                    <div className="border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden bg-white dark:bg-gray-900/50">
+                  {/* Sağ - Liste */}
+                  <div className="space-y-3">
+                    <Label className="text-xs text-slate-500 dark:text-slate-400">Seçilen Özellikler</Label>
+                    <div className="space-y-0">
                       {product.technicalSpecs.map((spec, index) => (
                         <div
                           key={index}
-                          className="flex items-center gap-4 py-3.5 px-4 border-b last:border-b-0 border-gray-200 dark:border-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-950/20 dark:hover:to-indigo-950/20 group transition-all"
+                          className={cn(
+                            "grid grid-cols-[180px_1fr_auto] items-start gap-4 p-3 group hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors min-h-[48px]",
+                            index % 2 === 0 ? "bg-slate-50/50 dark:bg-slate-900/30" : "bg-white dark:bg-slate-900/10"
+                          )}
                         >
-                          <div className="font-semibold text-sm min-w-[150px] text-gray-900 dark:text-white">
+                          <span className="text-xs font-medium text-slate-600 dark:text-slate-400 pt-0.5">
                             {spec.key}
-                          </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400 flex-1">
+                          </span>
+                          <span className="text-xs text-slate-900 dark:text-slate-100 leading-relaxed">
                             {spec.value}
-                          </div>
+                          </span>
                           <Button
-                            type="button"
                             variant="ghost"
                             size="icon"
                             onClick={() => removeTechnicalSpec(index)}
-                            className="h-8 w-8 flex-shrink-0 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg"
+                            className="h-7 w-7 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       ))}
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* SEO & İçerik */}
-            <Card className={cardClass}>
-              <CardHeader className={headerClass}>
-                <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
-                  SEO ve İçerik
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-5 p-6">
+          {/* Fiyatlandırma ve Stok Bilgileri */}
+          <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <CardContent className="p-6">
+              <div className="space-y-8">
+                {/* Üst - Fiyatlandırma (Grid 2 sütun) */}
+                <div className="grid grid-cols-2 gap-8">
+                  {/* Sol - Maliyet Fiyatları */}
+                  <div className="space-y-4">
+                    <div className="p-5 rounded-xl bg-gradient-to-br from-red-50/40 via-rose-50/30 to-orange-50/40 dark:from-red-950/20 dark:via-rose-950/15 dark:to-orange-950/20 border border-red-100/50 dark:border-red-900/30">
+                      <h3 className="text-sm font-semibold text-red-700 dark:text-red-400 mb-4 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                        Maliyet Fiyatları
+                      </h3>
+                      <div className="space-y-4">
+                        <div>
+                          <Label className="text-xs text-red-600/70 dark:text-red-400/70 mb-1.5 block">Tedarikçi Maliyet</Label>
+                          <Input
+                            type="number"
+                            value={product.supplierCost}
+                            disabled
+                            className="bg-red-50/40 dark:bg-red-950/20 border-red-200/50 dark:border-red-800/50 rounded-lg cursor-not-allowed opacity-70"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs text-red-600/70 dark:text-red-400/70 mb-1.5 block">Nakit İskontolu Maliyet</Label>
+                          <Input
+                            type="number"
+                            value={product.cashDiscountCost}
+                            disabled
+                            className="bg-red-50/40 dark:bg-red-950/20 border-red-200/50 dark:border-red-800/50 rounded-lg cursor-not-allowed opacity-70"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs text-red-600/70 dark:text-red-400/70 mb-1.5 block">Kampanya İskontolu Maliyet</Label>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              value={product.campaignDiscountCost}
+                              disabled
+                              className="bg-red-50/40 dark:bg-red-950/20 border-red-200/50 dark:border-red-800/50 rounded-lg cursor-not-allowed opacity-70"
+                            />
+                            <span className="text-[10px] px-2.5 py-1.5 rounded-md bg-red-100/60 dark:bg-red-900/20 text-red-700 dark:text-red-400 font-semibold whitespace-nowrap border border-red-200/50 dark:border-red-800/50">
+                              %5
+                            </span>
+                          </div>
+                        </div>
+                        <div className="opacity-40">
+                          <Label className="text-xs text-slate-500 dark:text-slate-400 mb-1.5 block">
+                            Kampanya İskontolu Maliyet <span className="text-[10px]">(Kampanya İndirimi Yoksa)</span>
+                          </Label>
+                          <Input
+                            type="number"
+                            value={product.noCampaignCost}
+                            disabled
+                            className="bg-slate-50/60 dark:bg-slate-900/60 border-slate-200/50 dark:border-slate-800/50 rounded-lg cursor-not-allowed"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sağ - Satış Fiyatları */}
+                  <div className="space-y-4">
+                    <div className="p-5 rounded-xl bg-gradient-to-br from-green-50/40 via-emerald-50/30 to-teal-50/40 dark:from-green-950/20 dark:via-emerald-950/15 dark:to-teal-950/20 border border-green-100/50 dark:border-green-900/30">
+                      <h3 className="text-sm font-semibold text-green-700 dark:text-green-400 mb-4 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        Satış Fiyatları
+                      </h3>
+                      <div className="space-y-4">
+                        <div>
+                          <Label className="text-xs text-green-600/70 dark:text-green-400/70 mb-1.5 block">Kargo + Nakit İskontolu Maliyet</Label>
+                          <Input
+                            type="number"
+                            value={product.shippingCost}
+                            disabled
+                            className="bg-green-50/40 dark:bg-green-950/20 border-green-200/50 dark:border-green-800/50 rounded-lg cursor-not-allowed opacity-70"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs text-green-600/70 dark:text-green-400/70 mb-1.5 block">BBB Satış Fiyatı</Label>
+                          <Input
+                            type="number"
+                            value={product.bbbSalesPrice}
+                            disabled
+                            className="bg-green-50/40 dark:bg-green-950/20 border-green-200/50 dark:border-green-800/50 rounded-lg font-semibold cursor-not-allowed opacity-70"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator className="my-4" />
+
+                    {/* Kar Marjı Raporu */}
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50/40 via-yellow-50/30 to-orange-50/40 dark:from-amber-950/20 dark:via-yellow-950/15 dark:to-orange-950/20 border border-amber-100/50 dark:border-amber-900/30">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-amber-600/70 dark:text-amber-400/70">Tahmini Kar Marjı</span>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-lg font-bold text-amber-900 dark:text-amber-200">
+                            ₺{(product.bbbSalesPrice - product.shippingCost).toFixed(2)}
+                          </span>
+                          <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                            %{((product.bbbSalesPrice - product.shippingCost) / product.shippingCost * 100).toFixed(0)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator className="my-4" />
+
+                    {/* Stok Bilgileri */}
+                    <div className="p-5 rounded-xl bg-gradient-to-br from-blue-50/40 via-indigo-50/30 to-purple-50/40 dark:from-blue-950/20 dark:via-indigo-950/15 dark:to-purple-950/20 border border-blue-100/50 dark:border-blue-900/30">
+                      <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-4 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                        Stok Bilgileri
+                      </h3>
+                      <div>
+                        <Label className="text-xs text-blue-600/70 dark:text-blue-400/70 mb-1.5 block">Toplam Stok</Label>
+                        <Input
+                          type="number"
+                          value={product.stock.supplier}
+                          disabled
+                          className="bg-blue-50/40 dark:bg-blue-950/20 border-blue-200/50 dark:border-blue-800/50 rounded-lg cursor-not-allowed opacity-70"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Kampanya Yönetimi */}
+          <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-2 gap-6">
+                {/* Sol - Özel Kampanya İndirimi */}
+                <div className="p-5 rounded-xl bg-gradient-to-br from-purple-50/40 via-violet-50/30 to-fuchsia-50/40 dark:from-purple-950/20 dark:via-violet-950/15 dark:to-fuchsia-950/20 border border-purple-100/50 dark:border-purple-900/30">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-purple-700 dark:text-purple-400 flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                      Özel Kampanya İndirimi
+                    </h3>
+                    <Switch
+                      checked={product.specialDiscount.enabled}
+                      onCheckedChange={(checked) => setProduct({
+                        ...product,
+                        specialDiscount: { ...product.specialDiscount, enabled: checked }
+                      })}
+                      className="scale-125 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-purple-600 data-[state=checked]:via-violet-600 data-[state=checked]:to-indigo-600"
+                    />
+                  </div>
+                  {product.specialDiscount.enabled && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-xs text-purple-600/70 dark:text-purple-400/70 mb-1.5 block">İndirim Oranı (%)</Label>
+                        <Input
+                          type="number"
+                          value={product.specialDiscount.percentage}
+                          onChange={(e) => setProduct({
+                            ...product,
+                            specialDiscount: { ...product.specialDiscount, percentage: Number(e.target.value) }
+                          })}
+                          className="bg-white/60 dark:bg-slate-900/60 border-purple-200/50 dark:border-purple-800/50 rounded-lg hover:border-purple-300 dark:hover:border-purple-700 transition-colors"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-xs text-purple-600/70 dark:text-purple-400/70 mb-1.5 block">Başlangıç Tarihi</Label>
+                          <Input
+                            type="date"
+                            value={product.specialDiscount.startDate}
+                            onChange={(e) => setProduct({
+                              ...product,
+                              specialDiscount: { ...product.specialDiscount, startDate: e.target.value }
+                            })}
+                            className="bg-white/60 dark:bg-slate-900/60 border-purple-200/50 dark:border-purple-800/50 rounded-lg hover:border-purple-300 dark:hover:border-purple-700 transition-colors"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs text-purple-600/70 dark:text-purple-400/70 mb-1.5 block">Bitiş Tarihi</Label>
+                          <Input
+                            type="date"
+                            value={product.specialDiscount.endDate}
+                            onChange={(e) => setProduct({
+                              ...product,
+                              specialDiscount: { ...product.specialDiscount, endDate: e.target.value }
+                            })}
+                            className="bg-white/60 dark:bg-slate-900/60 border-purple-200/50 dark:border-purple-800/50 rounded-lg hover:border-purple-300 dark:hover:border-purple-700 transition-colors"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Sağ - Son Uygulanan Kampanyalar */}
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label htmlFor="metaTitle" className={labelClass}>Meta Title</Label>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Clock className="h-4 w-4 text-slate-500" />
+                    <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Son Uygulanan Kampanyalar</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {product.previousCampaigns.map((campaign, index) => {
+                      const isActive = campaign.status === "active"
+                      return (
+                        <div
+                          key={index}
+                          className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                            isActive
+                              ? "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800"
+                              : "bg-slate-50/40 dark:bg-slate-950/40 border-slate-200/40 dark:border-slate-800/40 opacity-60"
+                          }`}
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <div className="flex items-center gap-2 text-xs text-slate-500">
+                                <Calendar className="h-3 w-3" />
+                                <span>{campaign.date}</span>
+                              </div>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                                isActive
+                                  ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                                  : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                              }`}>
+                                {isActive ? "Devam Ediyor" : "Süresi Doldu"}
+                              </span>
+                            </div>
+                            <div className="text-sm font-medium">{campaign.discount} indirim</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xs text-slate-500">Kampanya Fiyatı</div>
+                            <div className={`text-base font-bold ${
+                              isActive ? "text-green-600 dark:text-green-500" : "text-slate-400 dark:text-slate-600"
+                            }`}>
+                              ₺{campaign.price.toLocaleString('tr-TR')}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* SEO ve Ürün İçeriği */}
+          <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <CardContent className="p-6 space-y-6">
+              {/* Meta Title */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-xs text-slate-500 dark:text-slate-400">Meta Title</Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-slate-400">{product.metaTitle.length}/60</span>
                     <Button
-                      type="button"
                       variant="ghost"
                       size="sm"
                       onClick={() => generateWithAI('metaTitle')}
-                      className="gap-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/20 rounded-lg"
+                      className="text-xs h-7 px-2"
                     >
-                      <Sparkles className="h-4 w-4" />
-                      AI ile Oluştur
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      AI
                     </Button>
                   </div>
-                  <Input
-                    id="metaTitle"
-                    value={product.metaTitle}
-                    onChange={(e) => setProduct({ ...product, metaTitle: e.target.value })}
-                    placeholder="SEO başlığı"
-                    className={inputClass}
-                  />
                 </div>
+                <Input
+                  value={product.metaTitle}
+                  onChange={(e) => setProduct({ ...product, metaTitle: e.target.value })}
+                  className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg text-xs"
+                />
+              </div>
 
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label htmlFor="metaDescription" className={labelClass}>Meta Description</Label>
+              <Separator />
+
+              {/* Meta Description */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-xs text-slate-500 dark:text-slate-400">Meta Description</Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-slate-400">{product.metaDescription.length}/160</span>
                     <Button
-                      type="button"
                       variant="ghost"
                       size="sm"
                       onClick={() => generateWithAI('metaDescription')}
-                      className="gap-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/20 rounded-lg"
+                      className="text-xs h-7 px-2"
                     >
-                      <Sparkles className="h-4 w-4" />
-                      AI ile Oluştur
-                    </Button>
-                  </div>
-                  <Textarea
-                    id="metaDescription"
-                    value={product.metaDescription}
-                    onChange={(e) => setProduct({ ...product, metaDescription: e.target.value })}
-                    placeholder="SEO açıklaması"
-                    rows={3}
-                    className="rounded-xl border-gray-300 dark:border-gray-600 focus:border-purple-500 focus:ring-purple-500/20"
-                  />
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label htmlFor="description" className={labelClass}>Ürün Açıklaması</Label>
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => generateWithAI('description', 150)}
-                        className="gap-1 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/20 rounded-lg text-xs"
-                      >
-                        <Sparkles className="h-3 w-3" />
-                        150
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => generateWithAI('description', 300)}
-                        className="gap-1 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/20 rounded-lg text-xs"
-                      >
-                        <Sparkles className="h-3 w-3" />
-                        300
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => generateWithAI('description', 400)}
-                        className="gap-1 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/20 rounded-lg text-xs"
-                      >
-                        <Sparkles className="h-3 w-3" />
-                        400
-                      </Button>
-                    </div>
-                  </div>
-                  <Textarea
-                    id="description"
-                    value={product.description}
-                    onChange={(e) => setProduct({ ...product, description: e.target.value })}
-                    placeholder="Ürün detaylı açıklaması..."
-                    rows={6}
-                    className="rounded-xl border-gray-300 dark:border-gray-600 focus:border-purple-500 focus:ring-purple-500/20"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Ürün Görselleri */}
-            <Card className={cardClass}>
-              <CardHeader className={headerClass}>
-                <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
-                  Ürün Görselleri
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5">
-                  {product.images.map((image, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={image}
-                        alt={`Product ${index + 1}`}
-                        className="w-full h-44 object-cover rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-md group-hover:shadow-xl transition-all"
-                      />
-                      <div className="absolute top-3 left-3">
-                        <Badge
-                          className={index === 0 ? "bg-gradient-to-r from-pink-500 to-rose-500 shadow-lg" : "bg-gray-800/80 backdrop-blur-sm"}
-                        >
-                          {index === 0 ? "Ana" : index + 1}
-                        </Badge>
-                      </div>
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center">
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => removeImage(index)}
-                          className="rounded-lg shadow-lg"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Sil
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Yeni Görsel Ekle */}
-                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-6 text-center flex flex-col items-center justify-center h-44 hover:border-blue-400 hover:bg-blue-50/30 dark:hover:bg-blue-950/10 transition-all cursor-pointer group">
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                      <ImageIcon className="h-7 w-7 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 font-medium">Görsel Ekle</p>
-                    <Button type="button" variant="outline" size="sm" className="rounded-lg">
-                      <Upload className="h-3 w-3 mr-2" />
-                      Seç
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      AI
                     </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+                <Textarea
+                  value={product.metaDescription}
+                  onChange={(e) => setProduct({ ...product, metaDescription: e.target.value })}
+                  rows={3}
+                  className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg text-xs resize-none"
+                />
+              </div>
+
+              <Separator />
+
+              {/* Ürün Açıklaması */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-xs text-slate-500 dark:text-slate-400">Ürün Açıklaması</Label>
+                  <div className="flex gap-1.5">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => generateWithAI('description', 150)}
+                      className="text-[10px] h-7 px-2"
+                    >
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      150
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => generateWithAI('description', 300)}
+                      className="text-[10px] h-7 px-2"
+                    >
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      300
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => generateWithAI('description', 400)}
+                      className="text-[10px] h-7 px-2"
+                    >
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      400
+                    </Button>
+                  </div>
+                </div>
+                <Textarea
+                  value={product.description}
+                  onChange={(e) => setProduct({ ...product, description: e.target.value })}
+                  rows={10}
+                  className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg text-xs resize-none"
+                  placeholder="Ürün detaylarını buraya yazın..."
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+        </div>
+      </div>
+
+      {/* Alt Butonlar - Sticky */}
+      <div className="sticky bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-700 z-10">
+        <div className="max-w-7xl mx-auto px-8 py-4">
+          <div className="flex items-center justify-end gap-4">
+            <Button
+              onClick={handleSave}
+              className="h-11 px-8 bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-700 hover:via-violet-700 hover:to-indigo-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all"
+            >
+              Güncelle
+            </Button>
+            <Button
+              onClick={() => {
+                handleSave()
+                // Sonra sayfayı kapat veya yönlendir
+                window.history.back()
+              }}
+              className="h-11 px-8 bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 hover:from-indigo-700 hover:via-violet-700 hover:to-purple-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all"
+            >
+              Güncelle ve Kapat
+            </Button>
           </div>
-        </form>
+        </div>
       </div>
     </MainLayout>
   )

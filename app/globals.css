@@ -133,6 +133,16 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
+  /* Form elemanları için daha küçük font */
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="date"],
+  textarea,
+  select {
+    font-size: 13px !important;
+  }
+
   /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
