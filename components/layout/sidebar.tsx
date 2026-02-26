@@ -87,7 +87,7 @@ import {
   ClipboardList,
   Sparkles
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
@@ -109,18 +109,18 @@ const menuItems = [
     title: "Ürün Yönetimi",
     items: [
       { icon: List, label: "Ürün Listesi", href: "/products", badge: null },
-      { icon: Package, label: "Envanter Listesi", href: "#", badge: null },
-      { icon: Tags, label: "Kategori Yönetimi", href: "#", badge: null },
-      { icon: Building2, label: "Marka Yönetimi", href: "#", badge: null },
-      { icon: ClipboardList, label: "Teknik Özellikler", href: "#", badge: null },
-      { icon: Package2, label: "Desi Tanımlamaları", href: "#", badge: null },
+      { icon: Package, label: "Envanter Listesi", href: "/inventory", badge: null },
+      { icon: Tags, label: "Kategori Yönetimi", href: "/categories", badge: null },
+      { icon: Building2, label: "Marka Yönetimi", href: "/brands", badge: null },
+      { icon: ClipboardList, label: "Teknik Özellikler", href: "/specifications", badge: null },
+      { icon: Package2, label: "Desi Tanımlamaları", href: "/desi", badge: null },
     ]
   },
   {
     title: "Tedarikçi Yönetimi",
     items: [
-      { icon: Percent, label: "Tedarikçi Oranları", href: "#", badge: null },
-      { icon: FileText, label: "Tedarikçi Logları", href: "#", badge: null },
+      { icon: Percent, label: "Tedarikçi Oranları", href: "/supplier-rates", badge: null },
+      { icon: FileText, label: "Tedarikçi Logları", href: "/supplier-logs", badge: null },
     ]
   },
   {
@@ -159,15 +159,27 @@ const menuItems = [
 export function Sidebar() {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
-  const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
-    "Hadi Başlayalım!": true,
-    "Ürün Yönetimi": false,
-    "Tedarikçi Yönetimi": false,
-    "Sipariş Yönetimi": false,
-    "Raporlar": false,
-    "Ayarlar": false,
-    "GİRİŞ EKRANLARI": false,
-  })
+
+  // Determine which section should be open based on current pathname
+  const getInitialOpenSections = () => {
+    const sections: { [key: string]: boolean } = {
+      "Hadi Başlayalım!": pathname === "/",
+      "Ürün Yönetimi": ["/products", "/inventory", "/categories", "/brands", "/specifications", "/desi"].some(path => pathname.startsWith(path)),
+      "Tedarikçi Yönetimi": ["/supplier-rates", "/supplier-logs"].some(path => pathname.startsWith(path)),
+      "Sipariş Yönetimi": false,
+      "Raporlar": false,
+      "Ayarlar": false,
+      "GİRİŞ EKRANLARI": ["/login", "/password-reset", "/register", "/verification"].some(path => pathname.startsWith(path)),
+    }
+    return sections
+  }
+
+  const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>(getInitialOpenSections())
+
+  // Update open sections when pathname changes
+  useEffect(() => {
+    setOpenSections(getInitialOpenSections())
+  }, [pathname])
 
   const toggleSection = (sectionTitle: string) => {
     if (!collapsed) {

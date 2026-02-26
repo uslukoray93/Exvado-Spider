@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import {
   ArrowLeft,
@@ -22,20 +23,26 @@ import {
   Edit,
   Sparkles,
   Calendar,
-  Clock
+  Clock,
+  X,
+  Image as ImageIcon,
+  Save,
+  CheckCircle
 } from "lucide-react"
 
 export default function ProductEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
 
-  const productImages = [
+  const [productImages, setProductImages] = useState([
     "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=400&fit=crop",
     "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=400&h=400&fit=crop",
     "https://images.unsplash.com/photo-1504826260979-242151ee45b7?w=400&h=400&fit=crop"
-  ]
+  ])
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
 
   const [product, setProduct] = useState({
     name: "Nortek DMK 706 Tirifaze Dik Milli Kademeli Pompa / 2 Hp / 11/4\"-1",
@@ -104,6 +111,50 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
     console.log("Saving product:", product)
   }
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files) {
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          if (event.target?.result) {
+            setProductImages((prev) => [...prev, event.target!.result as string])
+          }
+        }
+        reader.readAsDataURL(file)
+      })
+      setIsImageModalOpen(false)
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const files = e.dataTransfer.files
+    if (files) {
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          if (event.target?.result) {
+            setProductImages((prev) => [...prev, event.target!.result as string])
+          }
+        }
+        reader.readAsDataURL(file)
+      })
+      setIsImageModalOpen(false)
+    }
+  }
+
   return (
     <MainLayout>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -128,12 +179,25 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                   </h1>
                 </div>
               </div>
-              <Button
-                onClick={handleSave}
-                className="bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-700 hover:via-violet-700 hover:to-indigo-700 text-white rounded-lg px-6"
-              >
-                Kaydet
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={handleSave}
+                  className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 hover:from-blue-700 hover:via-blue-800 hover:to-blue-900 text-white rounded-lg px-6"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Güncelle
+                </Button>
+                <Button
+                  onClick={() => {
+                    handleSave()
+                    window.history.back()
+                  }}
+                  className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 text-white rounded-lg px-6"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Güncelle ve Kapat
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -167,7 +231,10 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                         <img src={image} alt={`Thumb ${index + 1}`} className="w-full h-full object-cover" />
                       </div>
                     ))}
-                    <button className="w-16 h-16 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg flex items-center justify-center hover:border-slate-400 dark:hover:border-slate-600 transition-colors">
+                    <button
+                      onClick={() => setIsImageModalOpen(true)}
+                      className="w-16 h-16 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg flex items-center justify-center hover:border-slate-400 dark:hover:border-slate-600 transition-colors"
+                    >
                       <Plus className="h-5 w-5 text-slate-400" />
                     </button>
                   </div>
@@ -465,6 +532,68 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                         </div>
                       </div>
                     </div>
+
+                    <Separator className="my-4" />
+
+                    {/* Özel Kampanya İndirimi */}
+                    <div className="p-5 rounded-xl bg-gradient-to-br from-purple-50/40 via-violet-50/30 to-fuchsia-50/40 dark:from-purple-950/20 dark:via-violet-950/15 dark:to-fuchsia-950/20 border border-purple-100/50 dark:border-purple-900/30">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-semibold text-purple-700 dark:text-purple-400 flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                          Özel Kampanya İndirimi
+                        </h3>
+                        <Switch
+                          checked={product.specialDiscount.enabled}
+                          onCheckedChange={(checked) => setProduct({
+                            ...product,
+                            specialDiscount: { ...product.specialDiscount, enabled: checked }
+                          })}
+                          className="scale-125 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-purple-600 data-[state=checked]:via-violet-600 data-[state=checked]:to-indigo-600"
+                        />
+                      </div>
+                      {product.specialDiscount.enabled && (
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-xs text-purple-600/70 dark:text-purple-400/70 mb-1.5 block">İndirim Oranı (%)</Label>
+                            <Input
+                              type="number"
+                              value={product.specialDiscount.percentage}
+                              onChange={(e) => setProduct({
+                                ...product,
+                                specialDiscount: { ...product.specialDiscount, percentage: Number(e.target.value) }
+                              })}
+                              className="bg-white/60 dark:bg-slate-900/60 border-purple-200/50 dark:border-purple-800/50 rounded-lg hover:border-purple-300 dark:hover:border-purple-700 transition-colors"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label className="text-xs text-purple-600/70 dark:text-purple-400/70 mb-1.5 block">Başlangıç Tarihi</Label>
+                              <Input
+                                type="date"
+                                value={product.specialDiscount.startDate}
+                                onChange={(e) => setProduct({
+                                  ...product,
+                                  specialDiscount: { ...product.specialDiscount, startDate: e.target.value }
+                                })}
+                                className="bg-white/60 dark:bg-slate-900/60 border-purple-200/50 dark:border-purple-800/50 rounded-lg hover:border-purple-300 dark:hover:border-purple-700 transition-colors"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs text-purple-600/70 dark:text-purple-400/70 mb-1.5 block">Bitiş Tarihi</Label>
+                              <Input
+                                type="date"
+                                value={product.specialDiscount.endDate}
+                                onChange={(e) => setProduct({
+                                  ...product,
+                                  specialDiscount: { ...product.specialDiscount, endDate: e.target.value }
+                                })}
+                                className="bg-white/60 dark:bg-slate-900/60 border-purple-200/50 dark:border-purple-800/50 rounded-lg hover:border-purple-300 dark:hover:border-purple-700 transition-colors"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Sağ - Satış Fiyatları */}
@@ -533,81 +662,16 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                     </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Kampanya Yönetimi */}
-          <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-            <CardContent className="p-6">
-              <div className="grid grid-cols-2 gap-6">
-                {/* Sol - Özel Kampanya İndirimi */}
-                <div className="p-5 rounded-xl bg-gradient-to-br from-purple-50/40 via-violet-50/30 to-fuchsia-50/40 dark:from-purple-950/20 dark:via-violet-950/15 dark:to-fuchsia-950/20 border border-purple-100/50 dark:border-purple-900/30">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-semibold text-purple-700 dark:text-purple-400 flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                      Özel Kampanya İndirimi
-                    </h3>
-                    <Switch
-                      checked={product.specialDiscount.enabled}
-                      onCheckedChange={(checked) => setProduct({
-                        ...product,
-                        specialDiscount: { ...product.specialDiscount, enabled: checked }
-                      })}
-                      className="scale-125 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-purple-600 data-[state=checked]:via-violet-600 data-[state=checked]:to-indigo-600"
-                    />
-                  </div>
-                  {product.specialDiscount.enabled && (
-                    <div className="space-y-4">
-                      <div>
-                        <Label className="text-xs text-purple-600/70 dark:text-purple-400/70 mb-1.5 block">İndirim Oranı (%)</Label>
-                        <Input
-                          type="number"
-                          value={product.specialDiscount.percentage}
-                          onChange={(e) => setProduct({
-                            ...product,
-                            specialDiscount: { ...product.specialDiscount, percentage: Number(e.target.value) }
-                          })}
-                          className="bg-white/60 dark:bg-slate-900/60 border-purple-200/50 dark:border-purple-800/50 rounded-lg hover:border-purple-300 dark:hover:border-purple-700 transition-colors"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-xs text-purple-600/70 dark:text-purple-400/70 mb-1.5 block">Başlangıç Tarihi</Label>
-                          <Input
-                            type="date"
-                            value={product.specialDiscount.startDate}
-                            onChange={(e) => setProduct({
-                              ...product,
-                              specialDiscount: { ...product.specialDiscount, startDate: e.target.value }
-                            })}
-                            className="bg-white/60 dark:bg-slate-900/60 border-purple-200/50 dark:border-purple-800/50 rounded-lg hover:border-purple-300 dark:hover:border-purple-700 transition-colors"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-xs text-purple-600/70 dark:text-purple-400/70 mb-1.5 block">Bitiş Tarihi</Label>
-                          <Input
-                            type="date"
-                            value={product.specialDiscount.endDate}
-                            onChange={(e) => setProduct({
-                              ...product,
-                              specialDiscount: { ...product.specialDiscount, endDate: e.target.value }
-                            })}
-                            className="bg-white/60 dark:bg-slate-900/60 border-purple-200/50 dark:border-purple-800/50 rounded-lg hover:border-purple-300 dark:hover:border-purple-700 transition-colors"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <Separator className="my-6" />
 
-                {/* Sağ - Son Uygulanan Kampanyalar */}
+                {/* Son Uygulanan Kampanyalar */}
                 <div>
                   <div className="flex items-center gap-2 mb-4">
                     <Clock className="h-4 w-4 text-slate-500" />
                     <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Son Uygulanan Kampanyalar</h3>
                   </div>
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
                     {product.previousCampaigns.map((campaign, index) => {
                       const isActive = campaign.status === "active"
                       return (
@@ -762,8 +826,9 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
           <div className="flex items-center justify-end gap-4">
             <Button
               onClick={handleSave}
-              className="h-11 px-8 bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-700 hover:via-violet-700 hover:to-indigo-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all"
+              className="h-11 px-8 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 hover:from-blue-700 hover:via-blue-800 hover:to-blue-900 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all"
             >
+              <Save className="h-4 w-4 mr-2" />
               Güncelle
             </Button>
             <Button
@@ -772,13 +837,70 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                 // Sonra sayfayı kapat veya yönlendir
                 window.history.back()
               }}
-              className="h-11 px-8 bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 hover:from-indigo-700 hover:via-violet-700 hover:to-purple-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all"
+              className="h-11 px-8 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all"
             >
+              <CheckCircle className="h-4 w-4 mr-2" />
               Güncelle ve Kapat
             </Button>
           </div>
         </div>
       </div>
+
+      {/* Resim Yükleme Modalı */}
+      <Dialog open={isImageModalOpen} onOpenChange={setIsImageModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Resim Ekle</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Sürükle Bırak Alanı */}
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={cn(
+                "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
+                isDragging
+                  ? "border-primary bg-primary/5"
+                  : "border-slate-300 dark:border-slate-700 hover:border-primary/50"
+              )}
+            >
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                  <ImageIcon className="h-8 w-8 text-slate-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                    Resimleri buraya sürükleyin
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    veya dosya seçmek için tıklayın
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Dosya Seç Butonu */}
+            <div className="relative">
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <Button className="w-full bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-700 hover:via-violet-700 hover:to-indigo-700 text-white">
+                <Upload className="h-4 w-4 mr-2" />
+                Dosya Seç
+              </Button>
+            </div>
+
+            <p className="text-xs text-center text-slate-500 dark:text-slate-400">
+              PNG, JPG, WEBP formatları desteklenir (Max. 5MB)
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   )
 }
