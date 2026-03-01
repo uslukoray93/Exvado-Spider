@@ -142,6 +142,7 @@ const menuItems = [
     items: [
       { icon: Settings, label: "Genel Ayarlar", href: "/settings", badge: null },
       { icon: Mail, label: "E-posta Ayarları", href: "/email-settings", badge: null },
+      { icon: ClipboardList, label: "Log Kayıtları", href: "/activity-logs", badge: null },
     ]
   },
   {
@@ -167,7 +168,7 @@ export function Sidebar() {
       "Tedarikçi Yönetimi": ["/supplier-rates", "/supplier-logs"].some(path => pathname.startsWith(path)),
       "Sipariş Yönetimi": ["/orders", "/order-questions"].some(path => pathname.startsWith(path)),
       "Raporlar": ["/sales-reports", "/product-reports", "/growth-reports", "/product-comparison"].some(path => pathname.startsWith(path)),
-      "Ayarlar": false,
+      "Ayarlar": ["/settings", "/email-settings", "/activity-logs"].some(path => pathname.startsWith(path)),
       "GİRİŞ EKRANLARI": ["/login", "/password-reset", "/register", "/verification"].some(path => pathname.startsWith(path)),
     }
     return sections
