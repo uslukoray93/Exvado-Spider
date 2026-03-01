@@ -98,11 +98,9 @@ const menuItems = [
     title: "Hadi Başlayalım!",
     items: [
       { icon: LayoutDashboard, label: "Dashboard", href: "/", badge: null },
-      { icon: RefreshCw, label: "Cron Sync Rapor", href: "#", badge: null },
-      { icon: Database, label: "DB Update/Insert", href: "#", badge: null },
-      { icon: Zap, label: "Single Sync", href: "#", badge: null },
-      { icon: Key, label: "Token Cron", href: "#", badge: null },
-      { icon: FileCode, label: "XML Sync", href: "#", badge: null },
+      { icon: RefreshCw, label: "Cron Sync Rapor", href: "/cron-sync", badge: null },
+      { icon: Database, label: "DB Update/Insert", href: "/db-sync", badge: null },
+      { icon: FileCode, label: "XML Sync", href: "/xml-sync", badge: null },
     ]
   },
   {
@@ -126,23 +124,24 @@ const menuItems = [
   {
     title: "Sipariş Yönetimi",
     items: [
-      { icon: ShoppingCart, label: "Sipariş Listesi", href: "#", badge: null },
-      { icon: Clock, label: "İptal Edilenler", href: "#", badge: null },
+      { icon: ShoppingCart, label: "Sipariş Listesi", href: "/orders", badge: null },
+      { icon: Mail, label: "Sipariş Soruları", href: "/order-questions", badge: null },
     ]
   },
   {
     title: "Raporlar",
     items: [
-      { icon: BarChart3, label: "Satış Raporları", href: "#", badge: null },
-      { icon: TrendingDown, label: "Ürün Raporları", href: "#", badge: null },
-      { icon: AlertTriangle, label: "Envanterde Stoksuz Ürünler", href: "#", badge: null },
+      { icon: BarChart3, label: "Satış Raporları", href: "/sales-reports", badge: null },
+      { icon: TrendingDown, label: "Ürün Raporları", href: "/product-reports", badge: null },
+      { icon: TrendingUp, label: "Büyüme Raporları", href: "/growth-reports", badge: null },
+      { icon: Merge, label: "Ürün Karşılaştırma", href: "/product-comparison", badge: "new" },
     ]
   },
   {
     title: "Ayarlar",
     items: [
-      { icon: Settings, label: "Genel Ayarlar", href: "#", badge: null },
-      { icon: Mail, label: "E-posta Ayarları", href: "#", badge: null },
+      { icon: Settings, label: "Genel Ayarlar", href: "/settings", badge: null },
+      { icon: Mail, label: "E-posta Ayarları", href: "/email-settings", badge: null },
     ]
   },
   {
@@ -163,11 +162,11 @@ export function Sidebar() {
   // Determine which section should be open based on current pathname
   const getInitialOpenSections = () => {
     const sections: { [key: string]: boolean } = {
-      "Hadi Başlayalım!": pathname === "/",
+      "Hadi Başlayalım!": pathname === "/" || pathname.startsWith("/cron-sync") || pathname.startsWith("/db-sync") || pathname.startsWith("/xml-sync"),
       "Ürün Yönetimi": ["/products", "/inventory", "/categories", "/brands", "/specifications", "/desi"].some(path => pathname.startsWith(path)),
       "Tedarikçi Yönetimi": ["/supplier-rates", "/supplier-logs"].some(path => pathname.startsWith(path)),
-      "Sipariş Yönetimi": false,
-      "Raporlar": false,
+      "Sipariş Yönetimi": ["/orders", "/order-questions"].some(path => pathname.startsWith(path)),
+      "Raporlar": ["/sales-reports", "/product-reports", "/growth-reports", "/product-comparison"].some(path => pathname.startsWith(path)),
       "Ayarlar": false,
       "GİRİŞ EKRANLARI": ["/login", "/password-reset", "/register", "/verification"].some(path => pathname.startsWith(path)),
     }

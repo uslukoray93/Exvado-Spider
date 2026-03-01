@@ -358,4 +358,150 @@
   .custom-editor-content table th {
     position: relative;
   }
+
+  /* Print Styles */
+  @media print {
+    @page {
+      size: A4;
+      margin: 1.5cm;
+    }
+
+    body {
+      background: white !important;
+      color: black !important;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+
+    /* Hide everything by default */
+    body * {
+      visibility: hidden;
+    }
+
+    /* Show only print content */
+    .print-content,
+    .print-content * {
+      visibility: visible !important;
+    }
+
+    .print-content {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+
+    /* Hide elements with no-print class */
+    .no-print {
+      display: none !important;
+    }
+
+    /* Better print styling */
+    .print-content {
+      font-size: 11pt;
+      line-height: 1.4;
+      color: black !important;
+    }
+
+    .print-content h1 {
+      font-size: 20pt;
+      font-weight: bold;
+      color: black !important;
+      margin-bottom: 10pt;
+      border-bottom: 2px solid #000;
+      padding-bottom: 5pt;
+    }
+
+    .print-content h2 {
+      font-size: 16pt;
+      font-weight: bold;
+      color: black !important;
+      margin-top: 15pt;
+      margin-bottom: 8pt;
+    }
+
+    .print-content h3 {
+      font-size: 13pt;
+      font-weight: bold;
+      color: black !important;
+      margin-bottom: 6pt;
+    }
+
+    /* Cards */
+    .print-content .card,
+    .print-content [class*="Card"] {
+      border: 1px solid #ddd !important;
+      border-radius: 4pt !important;
+      padding: 10pt !important;
+      margin-bottom: 10pt !important;
+      break-inside: avoid;
+      background: white !important;
+    }
+
+    /* Tables */
+    .print-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8pt 0;
+      break-inside: avoid;
+    }
+
+    .print-content th,
+    .print-content td {
+      border: 1px solid #000;
+      padding: 6pt;
+      text-align: left;
+    }
+
+    .print-content th {
+      background-color: #f0f0f0 !important;
+      font-weight: bold;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* Remove backgrounds and shadows */
+    .print-content * {
+      box-shadow: none !important;
+      text-shadow: none !important;
+    }
+
+    /* Charts */
+    .recharts-wrapper {
+      break-inside: avoid;
+    }
+
+    /* Grid layouts */
+    .print-content [class*="grid"] {
+      display: grid !important;
+      gap: 10pt !important;
+    }
+
+    /* Badges */
+    .print-content [class*="Badge"],
+    .print-content [class*="badge"] {
+      border: 1px solid #000 !important;
+      padding: 2pt 6pt !important;
+      border-radius: 3pt !important;
+      font-size: 9pt !important;
+      background: white !important;
+      color: black !important;
+    }
+
+    /* Page breaks */
+    .print-page-break {
+      page-break-after: always;
+    }
+
+    .print-avoid-break {
+      page-break-inside: avoid;
+    }
+
+    /* HR */
+    hr {
+      border: none;
+      border-top: 1px solid #000;
+      margin: 10pt 0;
+    }
+  }
 }

@@ -7,13 +7,8 @@ import {
   User,
   LogOut,
   Settings,
-  HelpCircle,
-  Moon,
-  Sun,
-  Monitor,
-  Globe,
   Menu,
-  Eye
+  ShoppingCart
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,13 +23,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { useState, useEffect } from "react"
-import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
 import { authAPI, userManager } from "@/lib/auth"
 
 export function Header() {
   const [mounted, setMounted] = useState(false)
-  const { theme, setTheme } = useTheme()
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
 
@@ -73,65 +66,7 @@ export function Header() {
 
       {/* Sağ Taraf - Aksiyonlar */}
       <div className="flex items-center space-x-2 ml-4">
-        {/* Dil Seçimi */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative">
-              <Globe className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Dil Seçimi</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <span className="mr-2">🇹🇷</span> Türkçe
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <span className="mr-2">🇬🇧</span> English
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Siteyi Önizle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => window.open('http://localhost:3000', '_blank')}
-          title="Siteyi Önizle"
-        >
-          <Eye className="h-5 w-5" />
-        </Button>
-
-        {/* Tema Değiştirici */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              {theme === 'dark' ? (
-                <Moon className="h-5 w-5" />
-              ) : (
-                <Sun className="h-5 w-5" />
-              )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Tema Seçimi</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setTheme('light')}>
-              <Sun className="mr-2 h-4 w-4" />
-              Açık
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme('dark')}>
-              <Moon className="mr-2 h-4 w-4" />
-              Koyu
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme('system')}>
-              <Monitor className="mr-2 h-4 w-4" />
-              Sistem
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Mesajlar */}
+        {/* Ürün Soruları */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">
@@ -142,7 +77,7 @@ export function Header() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80">
-            <DropdownMenuLabel>Mesajlar</DropdownMenuLabel>
+            <DropdownMenuLabel>Ürün Soruları</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <div className="space-y-2 p-2">
               <div className="flex items-start space-x-2 p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded">
@@ -151,7 +86,7 @@ export function Header() {
                 </Avatar>
                 <div className="flex-1">
                   <p className="text-sm font-medium">Ahmet Yılmaz</p>
-                  <p className="text-xs text-gray-500">Yeni sipariş onayı bekliyor...</p>
+                  <p className="text-xs text-gray-500">Bu ürünün fiyatı neden değişti?</p>
                   <p className="text-xs text-gray-400 mt-1">5 dk önce</p>
                 </div>
               </div>
@@ -161,57 +96,156 @@ export function Header() {
                 </Avatar>
                 <div className="flex-1">
                   <p className="text-sm font-medium">Elif Kaya</p>
-                  <p className="text-xs text-gray-500">Ürün stoğu azaldı</p>
+                  <p className="text-xs text-gray-500">Ürün ne zaman gelecek?</p>
                   <p className="text-xs text-gray-400 mt-1">15 dk önce</p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-2 p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback>MÖ</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Mehmet Öz</p>
+                  <p className="text-xs text-gray-500">Toplu alımda indirim var mı?</p>
+                  <p className="text-xs text-gray-400 mt-1">1 saat önce</p>
                 </div>
               </div>
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-center">
-              Tüm Mesajları Gör
+              Tüm Soruları Gör
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Bildirimler */}
+        {/* Yeni Siparişler */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center">
+              <ShoppingCart className="h-5 w-5" />
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-orange-500">
                 5
               </Badge>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80">
-            <DropdownMenuLabel>Bildirimler</DropdownMenuLabel>
+            <DropdownMenuLabel>Yeni Siparişler</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <div className="space-y-2 p-2">
               <div className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded">
-                <div className="flex items-center space-x-2">
-                  <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-                  <p className="text-sm">Yeni kullanıcı kaydı: <span className="font-medium">Mehmet Öz</span></p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 bg-orange-500 rounded-full animate-pulse"></div>
+                    <p className="text-sm font-medium">Trendyol</p>
+                  </div>
+                  <Badge className="bg-orange-500 text-white text-xs">Yeni</Badge>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">2 saat önce</p>
+                <p className="text-xs text-gray-500 mt-1">1 yeni sipariş - Sipariş No: #TR12345</p>
+                <p className="text-xs text-gray-400 mt-1">2 dk önce</p>
               </div>
               <div className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded">
-                <div className="flex items-center space-x-2">
-                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                  <p className="text-sm">Sipariş tamamlandı: <span className="font-medium">#12345</span></p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 bg-orange-500 rounded-full animate-pulse"></div>
+                    <p className="text-sm font-medium">BolBolBul.com</p>
+                  </div>
+                  <Badge className="bg-orange-500 text-white text-xs">Yeni</Badge>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">3 saat önce</p>
+                <p className="text-xs text-gray-500 mt-1">1 yeni sipariş - Sipariş No: #BB67890</p>
+                <p className="text-xs text-gray-400 mt-1">5 dk önce</p>
               </div>
               <div className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded">
-                <div className="flex items-center space-x-2">
-                  <div className="h-2 w-2 bg-yellow-500 rounded-full"></div>
-                  <p className="text-sm">Sistem güncellemesi mevcut</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 bg-orange-500 rounded-full animate-pulse"></div>
+                    <p className="text-sm font-medium">Hepsiburada</p>
+                  </div>
+                  <Badge className="bg-orange-500 text-white text-xs">Yeni</Badge>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">5 saat önce</p>
+                <p className="text-xs text-gray-500 mt-1">2 yeni sipariş - Sipariş No: #HB24680, #HB24681</p>
+                <p className="text-xs text-gray-400 mt-1">8 dk önce</p>
+              </div>
+              <div className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 bg-orange-500 rounded-full animate-pulse"></div>
+                    <p className="text-sm font-medium">N11</p>
+                  </div>
+                  <Badge className="bg-orange-500 text-white text-xs">Yeni</Badge>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">1 yeni sipariş - Sipariş No: #N1113579</p>
+                <p className="text-xs text-gray-400 mt-1">12 dk önce</p>
               </div>
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-center">
-              Tüm Bildirimleri Gör
+              Tüm Siparişleri Gör
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Cron Durumları */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="relative">
+              <Bell className="h-5 w-5" />
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center">
+                4
+              </Badge>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-80">
+            <DropdownMenuLabel>Cron Sync Durumları</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <div className="space-y-2 p-2">
+              <div className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                    <p className="text-sm font-medium">Mapaş Sync</p>
+                  </div>
+                  <Badge className="bg-green-500 text-white text-xs">%100</Badge>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Senkronizasyon tamamlandı</p>
+                <p className="text-xs text-gray-400 mt-1">2 dk önce</p>
+              </div>
+              <div className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse"></div>
+                    <p className="text-sm font-medium">İtal Sync</p>
+                  </div>
+                  <Badge className="bg-red-500 text-white text-xs">Hata</Badge>
+                </div>
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">Lütfen kontrol edin</p>
+                <p className="text-xs text-gray-400 mt-1">5 dk önce</p>
+              </div>
+              <div className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                    <p className="text-sm font-medium">Pars Sync</p>
+                  </div>
+                  <Badge className="bg-yellow-500 text-white text-xs">%60</Badge>
+                </div>
+                <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">Senkronizasyon takıldı</p>
+                <p className="text-xs text-gray-400 mt-1">10 dk önce</p>
+              </div>
+              <div className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <p className="text-sm font-medium">Gediz Sync</p>
+                  </div>
+                  <Badge className="bg-blue-500 text-white text-xs">%45</Badge>
+                </div>
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">İşlem devam ediyor</p>
+                <p className="text-xs text-gray-400 mt-1">15 dk önce</p>
+              </div>
+            </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-center">
+              Tüm Cron Durumlarını Gör
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -231,29 +265,25 @@ export function Header() {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">{user?.name || 'Kullanıcı'}</p>
-                <p className="text-xs text-gray-500">{user?.email || 'email@example.com'}</p>
+                <p className="text-xs font-medium">Selam Koray</p>
+                <p className="text-[10px] text-gray-500">{user?.email || 'gedizmakina@gmail.com'}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              Profil
+            <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer text-xs">
+              <Settings className="mr-2 h-3.5 w-3.5" />
+              Genel Ayarlar
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              Ayarlar
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <HelpCircle className="mr-2 h-4 w-4" />
-              Yardım
+            <DropdownMenuItem onClick={() => router.push('/email-settings')} className="cursor-pointer text-xs">
+              <User className="mr-2 h-3.5 w-3.5" />
+              E-posta Ayarları
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              className="text-red-600 dark:text-red-400 cursor-pointer"
+              className="text-red-600 dark:text-red-400 cursor-pointer text-xs"
               onClick={handleLogout}
             >
-              <LogOut className="mr-2 h-4 w-4" />
+              <LogOut className="mr-2 h-3.5 w-3.5" />
               Çıkış Yap
             </DropdownMenuItem>
           </DropdownMenuContent>
