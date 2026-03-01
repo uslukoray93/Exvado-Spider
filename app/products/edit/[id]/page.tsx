@@ -614,6 +614,15 @@ export default function ProductEditPage({ params }: { params: Promise<{ id: stri
                           />
                         </div>
                         <div>
+                          <Label className="text-xs text-green-600/70 dark:text-green-400/70 mb-1.5 block">Kargo + Nakit İskontosu + Kampanya İndirimi Net Maliyet</Label>
+                          <Input
+                            type="number"
+                            value={(product.shippingCost * 0.95).toFixed(2)}
+                            disabled
+                            className="bg-green-50/40 dark:bg-green-950/20 border-green-200/50 dark:border-green-800/50 rounded-lg font-semibold cursor-not-allowed opacity-70"
+                          />
+                        </div>
+                        <div>
                           <Label className="text-xs text-green-600/70 dark:text-green-400/70 mb-1.5 block">BBB Satış Fiyatı</Label>
                           <Input
                             type="number"
