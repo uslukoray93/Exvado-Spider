@@ -85,6 +85,16 @@ export default function GrowthReportsPage() {
   const [selectedYear, setSelectedYear] = useState("2026")
   const [selectedYearForYearly, setSelectedYearForYearly] = useState("2026")
   const [exchangeRates, setExchangeRates] = useState({ usd: 34.50, eur: 37.20 }) // Default rates
+  const [currentDate, setCurrentDate] = useState("")
+
+  // Set current date on client side only
+  useEffect(() => {
+    const now = new Date()
+    const day = now.getDate().toString().padStart(2, '0')
+    const month = (now.getMonth() + 1).toString().padStart(2, '0')
+    const year = now.getFullYear()
+    setCurrentDate(`${day}.${month}.${year}`)
+  }, [])
 
   // Fetch exchange rates from TCMB
   useEffect(() => {
@@ -198,11 +208,11 @@ export default function GrowthReportsPage() {
     const eurGrowth = currentEUR && previousEUR ? ((currentEUR - previousEUR) / previousEUR) * 100 : null
 
     return (
-      <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-white dark:bg-gray-800">
+      <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
         {/* Gradient accent bar */}
         <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${color}`}></div>
 
-        <CardContent className="p-5">
+        <CardContent className="p-6">
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -423,7 +433,7 @@ export default function GrowthReportsPage() {
                   Rapor Dönemi: {months[parseInt(selectedMonth) - 1].label} {selectedYear}
                 </p>
                 <p className="text-xs text-gray-500">
-                  Rapor Tarihi: {new Date().toLocaleDateString('tr-TR')}
+                  Rapor Tarihi: {currentDate || '-'}
                 </p>
                 <hr className="my-4" />
               </div>
@@ -477,7 +487,7 @@ export default function GrowthReportsPage() {
             </div>
 
             {/* Year over Year Comparison */}
-            <div>
+            <div className="mt-8">
               <div className="flex items-center gap-2 mb-4">
                 <h2 className="text-lg font-semibold">Geçen Yılın Aynı Ayına Göre Büyüme</h2>
                 <Badge variant="outline" className="text-xs">
@@ -526,7 +536,7 @@ export default function GrowthReportsPage() {
             </div>
 
             {/* Summary Card */}
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800">
+            <Card className="mt-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800">
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-blue-600" />
@@ -539,12 +549,12 @@ export default function GrowthReportsPage() {
                     <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                       Bir Önceki Aya Göre
                     </h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                         <span className="text-sm text-gray-600 dark:text-gray-400">Ciro</span>
                         <GrowthBadge value={monthOverMonthGrowth.revenue} />
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
+                      <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                         <span className="text-sm text-gray-600 dark:text-gray-400">Kar</span>
                         <GrowthBadge value={monthOverMonthGrowth.profit} />
                       </div>
@@ -554,12 +564,12 @@ export default function GrowthReportsPage() {
                     <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                       Geçen Yılın Aynı Ayına Göre
                     </h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                         <span className="text-sm text-gray-600 dark:text-gray-400">Ciro</span>
                         <GrowthBadge value={yearOverYearGrowth.revenue} />
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
+                      <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                         <span className="text-sm text-gray-600 dark:text-gray-400">Kar</span>
                         <GrowthBadge value={yearOverYearGrowth.profit} />
                       </div>
@@ -605,7 +615,7 @@ export default function GrowthReportsPage() {
                   Rapor Dönemi: {selectedYearForYearly} Yılı
                 </p>
                 <p className="text-xs text-gray-500">
-                  Rapor Tarihi: {new Date().toLocaleDateString('tr-TR')}
+                  Rapor Tarihi: {currentDate || '-'}
                 </p>
                 <hr className="my-4" />
               </div>
